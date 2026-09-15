@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
 
 permissions:
   contents: write
@@ -23,9 +24,17 @@ jobs:
 
       - name: Count lines of code
         run: |
-          LINES=$(cloc . \
+          SOURCE_DIRS=(
+            "src"
+            "backend/src"
+            "frontend/src"
+          )
+
+          git ls-files -- "${SOURCE_DIRS[@]}" > /tmp/cloc-files.txt
+
+          LINES=$(cloc \
+            --list-file=/tmp/cloc-files.txt \
             --json \
-            --exclude-dir=.git,node_modules,dist,build,.venv,venv \
             | jq -r '.SUM.code // 0')
 
           echo "Lines of code: $LINES"
