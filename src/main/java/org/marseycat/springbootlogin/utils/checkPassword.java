@@ -4,8 +4,11 @@ import org.springframework.http.ResponseEntity;
 
 public class checkPassword {
 
+    char ch;
+
     public ResponseEntity<String> checkPassword(String password) {
-        if (    !password.contains("!") &&
+        if (
+                !password.contains("!") &&
                 !password.contains("?") &&
                 !password.contains("#") &&
                 !password.contains("$") &&
@@ -25,6 +28,26 @@ public class checkPassword {
             return ResponseEntity
                     .status(400)
                     .body("Add at least 1 special character and 1 Number");
+        }
+        boolean hasUppercase = false;
+        boolean hasLowercase = false;
+
+        for (int i = 0; i < password.length(); i++) {
+            char ch = password.charAt(i);
+
+            if (Character.isUpperCase(ch)) {
+                hasUppercase = true;
+            }
+
+            if (Character.isLowerCase(ch)) {
+                hasLowercase = true;
+            }
+        }
+
+        if (!hasUppercase || !hasLowercase) {
+            return ResponseEntity
+                    .status(400)
+                    .body("Add at least 1 uppercase character and 1 lowercase character");
         }
         if (password.length() < 8) {
             return ResponseEntity
