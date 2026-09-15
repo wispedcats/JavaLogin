@@ -1,6 +1,6 @@
 # Java Login API Template
 <!-- lines_of_code_start -->
-![Lines of Code](https://img.shields.io/badge/Lines_of_Code-729-blue)
+![Lines of Code](https://img.shields.io/badge/Lines_of_Code-889-blue)
 <!-- lines_of_code_end -->
 ### Hii, you wanna learn how to create a Secured Login API? This repo is for u :).
 
