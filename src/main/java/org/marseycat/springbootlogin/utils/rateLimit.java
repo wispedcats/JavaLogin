@@ -22,7 +22,7 @@ public class rateLimit {
 
         int count = requests.getOrDefault(ip, 0);
 
-        if (count >= 5) {
+        if (count >= 3) {
             return false;
         };
 

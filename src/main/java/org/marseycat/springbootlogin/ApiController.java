@@ -7,14 +7,10 @@ import org.springframework.web.bind.annotation.*;
 import org.marseycat.springbootlogin.utils.checkPassword;
 import org.marseycat.springbootlogin.utils.rateLimit;
 import org.marseycat.springbootlogin.utils.genSessionToken;
+import org.marseycat.springbootlogin.utils.userData;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-
-
-
+import java.time.LocalDate;
+import java.util.*;
 
 
 @RestController
@@ -54,18 +50,27 @@ public class ApiController {
 
         String token = genSessionToken.generateToken();
 
-
         try {
+            String role = null;
+            if (username.equals("admin")) {
+                role = "admin";
+            } else {
+                role = "user";
+            }
+
             jdbcTemplate.update("""
-                            INSERT INTO Users (uuid, username, password, ip, token, latestLogin)
-                            VALUES (?, ?, ?, ?, ?, ?)
+                            INSERT INTO Users (uuid, username, password, ip, token, latestLogin, role, banned, banReason)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                             """,
                     uuid,
                     username,
                     password,
                     ip,
                     token,
-                    now
+                    now,
+                    role,
+                    "false",
+                    "NONE"
             );
             return ResponseEntity.ok(
                     Map.of(
@@ -81,8 +86,16 @@ public class ApiController {
         }
     }
 
+    @PostMapping("api/v1/auth")
+    public ResponseEntity<?> auth(
+            @RequestHeader(value = "auth", required = true) String authToken
+    ) {
+        userData userData = new userData(jdbcTemplate);
 
+        Map<String, Object> data = userData.returnUserDataToken(authToken);
 
+        return ResponseEntity.ok(data);
+    }
 
     @PostMapping("/api/v1/login")
     public ResponseEntity<?> login(
@@ -97,38 +110,39 @@ public class ApiController {
                     .body("broo stop spamming :sob");
         }
 
-        String latestLogin = "";
-
         Integer count = jdbcTemplate.queryForObject("""
                 select count(*)
                 FROM users
                 WHERE username = ? AND password = ?;
                 
+                
                 """, Integer.class, username, password);
 
-        Map<String, Object> UserData = jdbcTemplate.queryForMap(
-                """
-                SELECT ip, latestLogin
-                FROM users
-                WHERE username = ?
-                """, username);
-
-        System.out.println(UserData.get("ip"));
-
-        String token = genSessionToken.generateToken();
-
-
         if (count != null && count > 0) {
+            userData userData = new userData(jdbcTemplate);
+
+            Map<String, Object> data = userData.getUserData(username);
+
+            String role = (String) data.get("role");
+
+            LocalDate now = LocalDate.now();
+
+            jdbcTemplate.update("""
+                    UPDATE users
+                    SET latestLogin = ?
+                    WHERE username = ?;
+                    """,
+                    now,
+                    username
+            );
             return ResponseEntity.ok(
                     Map.of(
                             "success", "true",
-                            "token", token,
-                            "role", "user",
-                            "latestLogin", latestLogin
+                            "token", "token check",
+                            "role", role
                     )
             );
         }
-
         return ResponseEntity
                 .status(401)
                 .body("Invalid username or password");

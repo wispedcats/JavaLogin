@@ -7,5 +7,10 @@ CREATE TABLE users (
     password varchar(255),
     ip varchar(255),
     token varchar(255),
-    latestLogin varchar(255)
+    latestLogin varchar(255),
+    role varchar(255),
+    banned varchar(255),
+    banReason varchar(255),
+    moderationPermissions varchar(255),
+    permissions varchar(255)
 )
